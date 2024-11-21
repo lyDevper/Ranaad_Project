@@ -6,7 +6,7 @@ const int nSample = 40;      // max sample size
 float samplingTime = 10000;  // microsec
 
 float lowerCut = 0.150;   // V
-float offTime = 150000;  // microsec // min time before next hit
+float offTime = 100000;  // microsec // min time before next hit
 float gains[nSample] = {2, 2, 1.3, 2, 2, 1.8, 2};
 float offsets[nSample] = {6, 6, 6, 4, 6, 6, 3};
 
@@ -53,13 +53,6 @@ void readPiezoes() {
     float value = analogRead(piezoPins[i]);
     float voltage = value * 5.0 / 1023.0;
 
-    if (!pinStates[i].isActive) {
-      // so peak is kept for a while
-      if (micros() - pinStates[i].timeStampHit > offTime) {
-        pinStates[i].peak = 0;
-      }
-    }
-
     // first hit; start of signal
     if (voltage > lowerCut && !pinStates[i].isActive) {
       if (micros() - pinStates[i].timeStampHit <= offTime) {
@@ -67,12 +60,6 @@ void readPiezoes() {
       }
       pinStates[i].isActive = true;
       pinStates[i].timeStampHit = micros();
-      // reset following next hit
-      pinStates[i].peak = 0;
-      pinStates[i].idx = 0;
-      for (int j = 0; j < nSample; j++) {
-        pinStates[i].dataArr[j] = 0;
-      }
     }
 
     // during signal change
@@ -83,27 +70,15 @@ void readPiezoes() {
 
       // end of signal
       if (micros() - pinStates[i].timeStampHit > samplingTime || pinStates[i].idx >= nSample) {
-        // write to noteValues only if this is not a noise i.e.
-        // there are not other peaks too higer with the offTime
-        float thisVolume = voltToVolume(pinStates[i].peak, i);
-        bool isNoise = false;
-        for (int j = 0; j < nNote; j++) {
-          if (j == i) {
-            continue;
-          }
-          if (voltToVolume(pinStates[j].peak, j) - thisVolume > 8) {
-            if (j <= i+2 || j >= i-2) {
-              isNoise = true;
-              break;
-            }
-          }
-        }
-
-        if (!isNoise) {
-          noteValues[i] = voltToVolume(pinStates[i].peak, i);
-        }
+        noteValues[i] = voltToVolume(pinStates[i].peak, i);
 
         pinStates[i].isActive = false;
+        // reset for next hit
+        pinStates[i].idx = 0;
+        pinStates[i].peak = 0;
+        for (int j = 0; j < nSample; j++) {
+          pinStates[i].dataArr[j] = 0;
+        }
       }
     }
   }

@@ -3,7 +3,7 @@ import time
 from pygame import mixer
 
 # กำหนดค่าการเชื่อมต่อ Serial
-ser = serial.Serial('COM9', 115200)  # เปลี่ยน COM เป็นพอร์ตที่ Arduino เชื่อมต่ออยู่
+ser = serial.Serial('/dev/ttyUSB0', 115200)  # เปลี่ยน COM เป็นพอร์ตที่ Arduino เชื่อมต่ออยู่
 time.sleep(2)  # รอเวลาเพื่อให้ Serial พร้อมใช้งาน >> จำเป็นมั้ย
 
 # เริ่มต้นการตั้งค่าระบบเสียง
@@ -38,7 +38,7 @@ while True:
             # แปลงข้อมูลที่แยกได้เป็นประเภทข้อมูลที่เหมาะสม
             note = int(note_data)  # ใช้ค่าตัวเลขแรกเป็นหมายเลขพิน
             volume_level = float(volume_data)  # ใช้ค่าตัวเลขหลังเป็นระดับเสียง
-            print(f"Pin: {note}, Volume Level: {volume_level}")
+            ##print(f"Pin: {note}, Volume Level: {volume_level}")
             
             # Call the function to play sound based on note and volume
             play_sound(note, volume_level)
